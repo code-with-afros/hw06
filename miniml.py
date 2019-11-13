@@ -801,14 +801,14 @@ def eval(asts):
         for ast in asts:
             if count != len(asts):
                 main_start += f"APP(LAM(x{count},"
-                main_end = f", t{count})" + main_end
+                main_end = f", t{count}))" + main_end
             if count != len(asts):
                 writer.write(f"\tval (x{count}, t{count}) = (\"{ast[0]}\", {ast[1]}); \n")
             else:
                 writer.write(f"\tval t = {ast[1]}; \n")
             count += 1
         main_start += f" t)"
-        writer.write(f"\tval main = {main_start+main_end}; \n")
+        writer.write(f"\tval main = {main_start+main_end[:-1]}; \n")
         writer.write("in\n")
         writer.write("\tnorReduce main\n")
         writer.write("end;")

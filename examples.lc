@@ -1,0 +1,55 @@
+zero  := (fn f => fn x => x);
+one   := (succ zero);
+two   := succ (succ zero);
+
+succ  := fn n => (fn f => fn x => f (n f x));
+pred  := fn n => (fn f => fn x )
+plus  := fn n => fn m => (n succ m);
+times := fn n => fn m => (fn f => fn x => n (m f) x);
+power := fn n => fn m => m (n); (*applies n, 'm' times*)
+
+pred := fn n => fn f => fn x => n(fn g => fn h => h(g f))(fn u => x)(fn u => u)
+
+(* pred breakdown
+n=2 
+(fn g => fn h => h(fn h' => h'(g f) f))(fn u =>x) (fn u => u)
+(fn h => h(fn h' => h'((fn u =>x) f) f)) (fn u => u)
+(fn h => h(fn h' => h'(x) f)) (fn u => u)
+(fn h => h(f(x))) (fn u => u)
+(fn u => u)(f(x)))
+(f(x)) = ONE WOOOOO
+
+n = 3
+expanded form after applying n = 3
+(fn g => fn h => h(fn h' => h'(fn h'' => h''(g f) f) f))(fn u =>x)(fn u => u)
+subst g for the Zero function
+(fn h => h(fn h' => h'(fn h'' => h''((fn u =>x) f) f) f))(fn u => u)
+applying Zero function to f
+(fn h => h(fn h' => h'(fn h'' => h''(x) f) f))(fn u => u)
+applying h'' function to x given f
+(fn h => h(fn h' => h'(f(x)) f))(fn u => u)
+applying h' function to f(x) given f
+(fn h => h(f(f(x))))(fn u => u)
+applying h function to f(f(x)) given Identity function
+(fn u => u)(f(f(x)))
+applying Identity to (f(f(x))) resulting in 3
+(f(f(x)))
+*)
+minus := fn n => fn m => m(pred)(n) (*applies pred 'm' times on n *)
+
+less := fn n => fn m => 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

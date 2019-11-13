@@ -1,0 +1,44 @@
+zero  := (fn f => fn x => x);
+one   := (succ zero);
+two   := succ (succ zero);
+
+succ  := fn n => (fn f => fn x => f (n f x));
+pred  := fn n => (fn f => fn x )
+plus  := fn n => fn m => (n succ m);
+times := fn n => fn m => (fn f => fn x => n (m f) x);
+
+main := times (succ two) two; 
+
+pred  := lam(n).lam(f).lam(x).n(lam(g).lam(h).h(g f)) (lam(u).x)(lam(u).u)
+
+(lam(u).x) is just zero, takes a function and gives back the domain
+(lam(u).u) takes a function and gives back that function
+first thing is n is applied to (Lam(g,h). h(g f))
+if n = 0
+(Lam(g,h).h(g f)) simply result in their input, which was
+(Lam(u).x) (Lam(u).u) or the zero function and identity function
+thus you are left with identity being applied to zero and you get zero as expected written
+(Lam(u).x)
+if n = 1
+we have
+(Lam(g,h). h(g f)) (Lam(u).x) (notice zero from n = 0)
+(Lam(h). h((ZERO f)) applying zero to g
+(Lam(h).h (x)) , now leaving one h behind
+if n = 2
+we have
+(Lam(g,h). h(g f)) applied twice so taking our last result and imagining the nested term being evaluated till we receive the result from n = 1 we have
+(Lam(g,h).h(g f)) (Lam(h').h' (x)) 
+(Lam(h).h((Lam(h').h' (x)) f)) applying last result to g
+(Lam(h).h(f(x))) applying f to h'
+if n = 3
+we have 
+(Lam(g,h). h(g f)) applied 3 times so taking our last result from n = 2 and imagining evaluating the nested 
+(Lam(g,h).h((Lam(g,h).h((Lam(g,h).h(g f)) f)) f)) till we have
+(Lam(g,h).h(g f)) (Lam(h).h(f(x))) using our last result
+(Lam(h).h((Lam(h').h'(f(x))) f)) subst last result for g
+(Lam(h).h(f(f(x)))) subst f for h'
+now if n = 3 was actually the final result,
+(Lam(h).h(f(f(x)))) would just return f(f(x)) which is 2 yay :)
+thus
+
+pred := fn n => fn f => fn x => n(fn g => fn h => h(g f))(fn u =>x) (fn u => u)

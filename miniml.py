@@ -1,57 +1,6 @@
 #
 # CSCI 384 Fall 2019: miniml.py
 #
-# Solution to Homework 06.
-# 
-# A simple expression evaluator for the MiniML language.
-#
-# ------------------------------------------------------------
-#
-# The MiniML language is given by the (ambiguous) grammar
-#
-# <expn> ::= if <expn> then <expn> else <expn>
-# <expn> ::= let val <name> = <expn> in <expn> end
-# <expn> ::= let <func> in <expn> end
-# <func> ::= fun <name> <name> = <expn> | fun <name> <name> = <expn> <funs>
-# <funs> ::= and <name> <name> = <expn> | and <name> <name> = <expn> <funs>
-# <expn> ::= fn <name> => <expn> | <expn> <expn>
-# <expn> ::= <expn> <bopn> <expn>
-# <expn> ::= <uopn> <expn>
-# <atom> ::= <litv> | <name> | ( <expn> )
-# <bopn> ::= andalso | orelse | < | = | + | - | * | div | mod
-# <bopn> ::= not | print | fst | snd | exit
-# <name> ::= x | i | count | fib | ... 
-# <litv> ::= true | false | 0 | 1 | ...
-#
-# This program waits for an expression entered by the user,
-# one whose syntax is expected to conform to this gramma.
-# It parses that expression using the function `parseExpn`
-# (after converting it to a stream of tokens), building an
-# AST. It then evaluates that AST using the function `eval`.
-# 
-# If there are no errors, it reports the resulting value.
-#
-# Values are represented as "tagged" lists whose 0th component
-# gives the type of the value, and whose remaining component(s)
-# describe the value. For example, the lists
-#
-#      ["Bool", True]
-#      ["Int", 35]
-#
-# represent a boolean and an integer, respectively. Function
-# values are (expected to be) tagged with "Clos" and have
-# the components of a closure as their value.
-#
-# The tags are used to do simple run-time type checkng when
-# an AST is being evaluated. Errors are raised, for example,
-# when an addition's sub-expressions don't yield an integer
-# type. See the "Plus" case in 'eval' and its use of the
-# function 'getIntValue" for illustration of this runtime
-# type checking.
-#
-#
-# ------------------------------------------------------------
-#
 
 import sys
 import os
@@ -81,8 +30,6 @@ import traceback
 # k is the "arity" of that node's constructor, and where is 
 # a string reporting the location where the parse occurred.
 #
-# That 'where' string can be used for reporting errors during
-# "semantic" checks. (e.g. during interpretation, type-checking).
 #
 #
 
@@ -96,7 +43,7 @@ def parseChurch(tokens):
         x = tokens.eatName()
         tokens.eat(':=')
         y = parseExpn(tokens)
-        return [x,y]
+        return (x,y)
     else:
         return parseExpn(tokens)
 
@@ -112,7 +59,7 @@ def parseExpn(tokens):
         e2 = parseExpn(tokens)
         tokens.eat('else')
         e3 = parseExpn(tokens)
-        return ["If",e1,e2,e3]
+        return f"IF({e1},{e2},{e3})"
     elif tokens.next() == 'let':
         tokens.eat('let')
         if tokens.next() == 'val':
@@ -120,33 +67,33 @@ def parseExpn(tokens):
             x = tokens.eatName()
             tokens.eat('=')
             r = parseExpn(tokens)
-            d = ["Val",x,r]
+            d = f"VAL({x},{r})"
         else:
             tokens.eat('fun')
             f = tokens.eatName()
             x = tokens.eatName()
             tokens.eat('=')
             r = parseExpn(tokens)
-            d = ["Fun",f,x,r]
+            d = f"FUN({f},{x},{r})"
             while tokens.next() == 'and':
                 tokens.eat('and')
                 f = tokens.eatName()
                 x = tokens.eatName()
                 tokens.eat('=')
                 r = parseExpn(tokens)
-                dp = ["Fun",f,x,r]
-                d = ["Funs",d,dp]
+                dp = f"FUN({f},{x},{r})"
+                d = f"FUNS({d},{dp})"
         tokens.eat('in')
         b = parseExpn(tokens)
         tokens.eat('end')
-        return ["Let",d,b]
+        return f"LET({d},{b})"
             
     elif tokens.next() == "fn":
         tokens.eat('fn')
         x = tokens.eatName()
         tokens.eat('=>')
         r = parseExpn(tokens)
-        return ["Lam",x,r]
+        return f"LAM(\"{x}\",{r})"
     else:
         return parseDisj(tokens)
 
@@ -158,7 +105,7 @@ def parseDisj(tokens):
     while tokens.next() == 'orelse':
         tokens.eat('orelse')
         ep = parseConj(tokens)
-        e = ["Or",e,ep]
+        e = f"OR({e},{ep})"
     return e
 
 def parseConj(tokens):
@@ -169,7 +116,7 @@ def parseConj(tokens):
     while tokens.next() == 'andalso':
         tokens.eat('andalso')
         ep = parseCmpn(tokens)
-        e = ["And",e,ep]
+        e = f"AND({e},{ep})"
     return e
 
 def parseCmpn(tokens):
@@ -180,11 +127,11 @@ def parseCmpn(tokens):
     if tokens.next() == '<':
         tokens.eat('<')
         ep = parseAddn(tokens)
-        e = ["Less",e,ep]
+        e = f"LESS({e},{ep})"
     elif tokens.next() == '=':
         tokens.eat('=')
         ep = parseAddn(tokens)
-        e = ["Equals",e,ep]
+        e = f"EQUALS({e},{ep})"
     return e
 
 def parseAddn(tokens):
@@ -196,11 +143,11 @@ def parseAddn(tokens):
         if tokens.next() == '+':
             tokens.eat('+')
             ep = parseMult(tokens)
-            e = ["Plus",e,ep]
+            e = f"PLUS({e},{ep})"
         elif tokens.next() == '-':
             tokens.eat('-')
             ep = parseMult(tokens)
-            e = ["Minus",e,ep]
+            e = f"MINUS({e},{ep})"
     return e
 
 def parseMult(tokens): 
@@ -212,15 +159,15 @@ def parseMult(tokens):
         if tokens.next() == '*':
             tokens.eat('*')
             ep = parseAppl(tokens)
-            e = ["Times",e,ep]
+            e = f"TIMES({e},{ep})"
         elif tokens.next() == 'div':
             tokens.eat('div')
             ep = parseAppl(tokens)
-            e = ["Div",e,ep]
+            e = f"DIV({e},{ep})"
         elif tokens.next() == 'mod':
             tokens.eat('mod')
             ep = parseAppl(tokens)
-            e = ["Mod",e,ep]
+            e = f"MOD({e},{ep})"
     return e
 
 BINOPS = ['andalso','orelse','<','=','+','-','*','div','mod']
@@ -233,7 +180,7 @@ def parseAppl(tokens):
     e = parsePrfx(tokens)
     while tokens.next() not in STOPPERS:
         ep = parsePrfx(tokens)
-        e = ["App",e,ep]
+        e = f"APP({e},{ep})"
     return e
 
 def parsePrfx(tokens): 
@@ -270,7 +217,7 @@ def parseAtom(tokens):
     #
     if tokens.nextIsInt():
         n = tokens.eatInt()
-        return ["Literal",["Int",n]]
+        return f"INT {n}"
 
     #
     # <atom> ::= () | ( <expn> )
@@ -281,20 +228,20 @@ def parseAtom(tokens):
         tokens.eat('(')
         # Unit literal
         if tokens.next() == ')':
-            e = ["Literal",["Unit"]]
+            e = f"UNIT"
         else:
             e = parseExpn(tokens)
             # Pairing up
             if tokens.next() == ',':
                 tokens.eat(',')
                 ep = parseExpn(tokens)
-                e = ["PairUp",e,ep]
+                e = f"PAIRUP({e},{ep})"
             else:
                 # Sequencing
                 while tokens.next() == ';':
                     tokens.eat(';')
                     ep = parseExpn(tokens)
-                    e = ["Seq",e,ep]
+                    e = f"SEQ({e},{ep})"
         tokens.eat(')')
         return e
 
@@ -303,21 +250,21 @@ def parseAtom(tokens):
     #
     elif tokens.nextIsName():
         x = tokens.eatName()
-        return ["Var",x]
+        return f"VAR \"{x}\""
 
     #
     # <atom> ::= true
     #
     elif tokens.next() == 'true':
         tokens.eat('true')
-        return ["Literal",["Bool",True]]
+        return f"BOOL \"{True}\""
 
     #
     # <atom> ::= false
     #
     elif tokens.next() == 'false':
         tokens.eat('false')
-        return ["Literal",["Bool",False]]
+        return f"BOOL \"{False}\""
 
     #
     else:
@@ -843,14 +790,22 @@ def interpret(tks):
 
 def eval(asts):
     count = 1
-    with open('asts.sml','w') as writer:
+    # ast_dict = {}
+    with open('test.sml','w') as writer:
+        writer.write("val _ = (Control.Print.printLength := 1024)\n")
+        writer.write("val _ = (Control.Print.printDepth := 20)\n\n")
+        writer.write("datatype expn = LAM of string * expn | APP of expn * expn | VAR of string;\n\n")
+        
+        writer.write("let\n")
         for ast in asts:
             if count != len(asts):
-                writer.write("let val x"+str(count)+",t"+str(count)+" = " + str(ast)+"\n")
+                writer.write(f"\tval (x{count}, t{count}) = (\"{ast[0]}\", {ast[1]}) \n")
             else:
-                ast = ast[1]
-                writer.write("let val t = "+str(ast)+"\n")
+                writer.write(f"\tval t = {ast[1]} \n")
             count += 1
+        writer.write("in\n")
+        writer.write("\tmain\n")
+        writer.write("end;")
 
 
 def evalAll(files):

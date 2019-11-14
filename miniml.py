@@ -792,9 +792,6 @@ def eval(asts):
     count = 1
     with open('test.sml','w') as writer:
         writer.write("use \"norReduce.sml\";\n\n")
-        writer.write("val _ = (Control.Print.printLength := 1024)\n")
-        writer.write("val _ = (Control.Print.printDepth := 20)\n\n")
-        writer.write("datatype expn = LAM of string * expn | APP of expn * expn | VAR of string;\n\n")
         writer.write("let\n")
 
         main_start, main_end = "", ""
@@ -803,14 +800,14 @@ def eval(asts):
                 main_start += f"APP(LAM(x{count},"
                 main_end = f", t{count}))" + main_end
             if count != len(asts):
-                writer.write(f"\tval (x{count}, t{count}) = (\"{ast[0]}\", {ast[1]}); \n")
+                writer.write(f"\tval (x{count}, t{count}) = (\"{ast[0]}\", {ast[1]}) \n")
             else:
-                writer.write(f"\tval t = {ast[1]}; \n")
+                writer.write(f"\tval t = {ast[1]} \n")
             count += 1
         main_start += f" t)"
-        writer.write(f"\tval main = {main_start+main_end[:-1]}; \n")
+        writer.write(f"\tval main = {main_start+main_end[:-1]} \n")
         writer.write("in\n")
-        writer.write("\tnorReduce main\n")
+        writer.write("\treducesTo main\n")
         writer.write("end;")
 
 

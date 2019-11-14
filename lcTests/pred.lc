@@ -1,0 +1,5 @@
+zero  := (fn f => fn x => x);
+one   := (succ zero);
+pred := fn n => fn f => fn x => n(fn g => fn h => h(g f))(fn u => x)(fn u => u);
+
+main := pred one;

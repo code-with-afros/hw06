@@ -1,0 +1,8 @@
+succ  := fn n => (fn f => fn x => f (n f x));
+pred := fn n => fn f => fn x => n(fn g => fn h => h(g f))(fn u => x)(fn u => u);
+zero  := (fn f => fn x => x);
+one   := (succ zero);
+two   := succ (succ zero);
+minus := fn n => fn m => m(pred)(n)
+
+main := plus one two

@@ -1,6 +1,0 @@
-succ  := fn n => (fn f => fn x => f (n f x));
-two   := succ (succ zero);
-three := succ (succ (succ zero));
-times := fn n => fn m => (fn f => fn x => n (m f) x);
-
-main := times two three;

@@ -1,3 +1,0 @@
-zero  := (fn f => fn x => x);
-succ  := fn n => (fn f => fn x => f (n f x));
-main := succ succ zero;

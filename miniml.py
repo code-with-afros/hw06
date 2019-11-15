@@ -1,5 +1,6 @@
 #
-# CSCI 384 Fall 2019: miniml.py
+# CSCI 384 Fall 2019: HW06
+# Submission by: Vinay Gopalan and Ryan Neumann
 #
 
 import sys
@@ -272,132 +273,6 @@ def parseAtom(tokens):
         err1 = "Unexpected token at "+where+". "
         err2 = "Saw: '"+tokens.next()+"'. "
         raise SyntaxError(err1 + err2)
-
-#
-# ------------------------------------------------------------
-#
-# The Interpreter
-#
-def lookUpVar(x,env,err):
-    for (y,v) in env:
-        if y == x:
-            return v
-    raise RunTimeError("Use of variable '"+x+"'. "+err)
-
-
-def getIntValue(taggedValue,errMsg):
-    if not isinstance(taggedValue,list) or taggedValue[0] != "Int":
-        raise TypeError(errMsg)
-    return taggedValue[1]
-
-def getBoolValue(taggedValue,errMsg):
-    if not isinstance(taggedValue,list) or taggedValue[0] != "Bool":
-        raise TypeError(errMsg)
-    return taggedValue[1]
-
-def getClosValue(taggedValue,errMsg):
-    if not isinstance(taggedValue,list) or taggedValue[0] != "Clos":
-        raise TypeError(errMsg)
-    return taggedValue[1],taggedValue[2],taggedValue[3]
-
-def checkDiv0(divisor, where):
-    if divisor == 0:
-        raise RunTimeError("Attempt to divide by zero at "+where+".")
-    return divisor
-        
-    
-INTOPS = {"Plus": (lambda iv1,iv2,w: iv1+iv2),
-          "Minus": (lambda iv1,iv2,w: iv1-iv2),
-          "Times": (lambda iv1,iv2,w: iv1*iv2),
-          "Div": (lambda iv1,iv2,w: iv1 // checkDiv0(iv2,w)),
-          "Mod": (lambda iv1,iv2,w: iv1 % iv2)}
-CMPOPS = {"Equals": (lambda iv1,iv2,w: iv1 == iv2), 
-          "Less": (lambda iv1,iv2,w: iv1 < iv2)}
-
-# 
-# closureBinding(d):
-#
-#   Given d == ["Fun", f, x, r], this builds and returns a named
-#   closure, missing its captured context, as a name-value binding.
-#
-def closureBinding(d):
-    f = d[1]
-    x = d[2]
-    r = d[3]
-    fv = ["Clos",x,r,None]
-    return (f,fv)
-
-# 
-# recBindAll(env, ds):
-#
-#   Given ds == ["Funs", ... ] or ds == ["Fun", ... ]
-#   that is, function definition(s) that are part of a let, 
-#   build a list [(f1,c1), ... , (fk,ck)] of function-closure
-#   bindings for their mutually recursive definition, and
-#   extend the given env with them, returning a new
-#   environment.
-#
-
-def recBindAll(env, ds):
-
-    # Step 1: Unpack the "let fun (...and...)" AST and build a collection of closures.
-    # Step 2: Tie the loop for each closure, making it recursive.
-    # Step 3: Give back an extended environment with each of them bound. 
-
-    fvs = []   # The list of closures that we form in Step 1 and fix in Step 2.
-    envp = env # The environment we want to return in Step 3.
-    
-    # Step 1.
-    # Build a collection of function closures, and extend the
-    # environment to have their names bound to them. Each 
-    # closure will be missing its captured context. We'll
-    # fix that in Step 2. This gives us a collection of 
-    # mutually recursive closures. We write this as a loop 
-    # below. 
-    #
-    # Note that the code is more naturally recursive, except
-    # we need to do the "fix the broken closures" Step 2
-    # afterwards. So instead we handle the base case within 
-    # the loop's body. This, btw, happens to handle the case
-    # when there is only a single recursive function.
-    #
-    while ds is not None:
-        # Unpack structure
-        #          Funs
-        #           / \
-        #       Funs   Fun
-        #        / \   ...
-        #     ...   Fun  
-        #     /     ...
-        #  Funs
-        #   / \
-        # Fun  Fun
-        # ...  ...
-        # and make a list of bindings of closures.
-        if ds[0] == "Funs":
-            # We're not at the last.
-            d = ds[2]    # Get the function definition.
-            ds = ds[1]   # Prepare for the next iteration.
-        else: 
-            # It's at the bottom, just a Fun
-            d = ds       # At the bottom, it *is* the last definition
-            ds = None    # Indicate that we're done for the next iteration.
-            
-        f,fv = closureBinding(d)
-        fvs = [fv] + fvs        # Make a list of closures to fix in Step 2.
-        envp = [(f,fv)] + envp  # Make an environment to return in Step 3.
-    #
-    # Step 2.
-    # Fix all the broken closures so that each function knows about
-    # itself and the others.
-    #
-    for fv in fvs:
-        fv[3] = envp
-
-    # Step 3.
-    # Give back that extended environbment.
-    return envp
-
 
 #
 # ------------------------------------------------------------
@@ -786,9 +661,9 @@ def interpret(tks):
         ast = parseChurch(tks)
         asts.append(ast)
         tks.eat(";")
-    return eval(asts)
+    return format(asts)
 
-def eval(asts):
+def format(asts):
     count = 1
     with open('test.sml','w') as writer:
         writer.write("use \"norReduce.sml\";\n\n")

@@ -1,0 +1,15 @@
+zero := fn f => fn x => x;
+
+main := zero;
+
+(*
+APP (LAM ("zero",VAR "zero"),LAM ("f",LAM ("x",VAR "x")))
+
+
+LAM ("zero",LAM ("f",LAM ("x",VAR "x")))
+
+
+
+LAM ("f",LAM ("x",VAR "x"))
+
+*)

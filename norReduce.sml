@@ -120,21 +120,48 @@ fun subst (x,v) t = case t of
 
 (*
 val (x1, t1) = ("zero", LAM("f",LAM("x",VAR "x"))) 
-  val (x2, t2) = ("one", APP(VAR "succ",VAR "zero")) 
-  val (x3, t3) = ("pred", LAM("n",LAM("f",LAM("x",APP(APP(APP(VAR "n",LAM("g",LAM("h",APP(VAR "h",APP(VAR "g",VAR "f"))))),LAM("u",VAR "x")),LAM("u",VAR "u")))))) 
-  val t = APP(VAR "pred",VAR "one") 
-  val main = APP(LAM(x1,APP(LAM(x2,APP(LAM(x3, t), t3)), t2)), t1)  
+val (x2, t2) = ("three", APP(VAR "succ",APP(VAR "succ",APP(VAR "succ",VAR "zero")))) 
+val (x3, t3) = ("pred", LAM("n",LAM("f",LAM("x",APP(APP(APP(VAR "n",LAM("g",LAM("h",APP(VAR "h",APP(VAR "g",VAR "f"))))),LAM("u",VAR "x")),LAM("u",VAR "u")))))) 
+val t = APP(VAR "pred",VAR "one") 
+val main = APP(LAM(x1,APP(LAM(x2,APP(LAM(x3, t), t3)), t2)), t1) 
 
 
 
-
+APP (LAM(x1,t1),LAM(x2,t2)) => APP (LAM)
 APP(LAM(x1,APP(LAM(x2,APP(LAM(x3, t), t3)), t2)), t1) 
 
+pred := fn n => fn f => fn x => n(fn g => fn h => h(g f)) (fn u => x) (fn u => u);
+
+n(fn g => fn h => h(g f))
+=> 
+fn g =>fn h => h(fn h => h(fn h => h(g f) f) f)
+APP(VAR "n",LAM("g",LAM("h",APP(VAR "h",APP(VAR "g",VAR "f")))))
 
 
+n = 3
+expanded form after applying n = 3
+(fn g => fn h => h(fn h' => h'(fn h'' => h''(g f) f) f))(fn u =>x)(fn u => u)
+subst g for the Zero function
+(fn h => h(fn h' => h'(fn h'' => h''((fn u =>x) f) f) f))(fn u => u)
+applying Zero function to f
+(fn h => h(fn h' => h'(fn h'' => h''(x) f) f))(fn u => u)
+applying h'' function to x given f
+(fn h => h(fn h' => h'(f(x)) f))(fn u => u)
+applying h' function to f(x) given f
+(fn h => h(f(f(x))))(fn u => u)
+applying h function to f(f(x)) given Identity function
+(fn u => u)(f(f(x)))
+applying Identity to (f(f(x))) resulting in 3
+(f(f(x)))
 
 
-
+fun subst (x,v) t = case t of
+    (VAR y) => 
+           if x=y then v 
+                  else (VAR y)
+| (LAM (y,r)) =>
+           if x=y then t
+                  else ( subst (x,v) r)
 
 
 *)
@@ -144,16 +171,15 @@ fun reduceStep t = case t of
     (LET (x,s,t))        => if isValue s 
                             then subst (x,s) t
                             else LET (x,reduceStep s,t)
-  | (APP (LAM(x,t),s))   => if isValue s 
-                            then subst (x,s) t
-                            else (APP (LAM(x,t),reduceStep s))
+  | (APP (LAM(x,t),s))   => (subst(x,s) t)
+  | (APP (VAR x,t))       => (APP(VAR x, reduceStep t))
+  | (APP (APP(x1,t1), VAR x2)) => VAR x2
   | (APP (REC(f,x,t),s)) => if isValue s 
                             then subst (f,REC(f,x,t)) (subst (x,s) t)
                             else (APP (REC(f,x,t),reduceStep s))                    
   | (APP (t1,t2))        => APP (reduceStep t1,t2)
 
-  (*| (LAM(x,t),s)         => (LAM(x,t),s) *)
-
+  | (LAM (x,t))    => (LAM (x,reduceStep t))
   | (NEG (NUM i)) => NUM (~i)
   | (NEG t)       => NEG (reduceStep t)
 

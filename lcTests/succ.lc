@@ -1,3 +1,53 @@
 zero  := (fn f => fn x => x);
 succ  := fn n => (fn f => fn x => f (n f x));
-main := succ succ zero;
+main := succ zero;
+
+(*
+for main := succ zero:
+
+ => APP (LAM("zero",APP(LAM ("succ",APP (VAR "succ",VAR "zero")),LAM ("n", LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))))), LAM ("f",LAM ("x",VAR "x")))
+ = APP(LAM(zero, t),s) where s is the lambda numeral zero
+
+ *substituting zero numeral for VAR "zero"
+ => APP(LAM ("succ",APP (VAR "succ",LAM ("f",LAM ("x",VAR "x")))),LAM ("n", LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))))
+ = APP(LAM("succ", t),s) where s is the lamda function succ
+
+ *substituting succ function for VAR "succ"
+ =>APP (  LAM ("n", LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x")))))  ,  LAM ("f",LAM ("x",VAR "x")) )
+ = APP(LAM(x1,t1),LAM(x2,t2)) where Lam1 is succ and Lam2 is zero
+ = APP(LAM(n,t),s) where s is zero
+
+ *substituting s for VAR "n"
+ =>LAM ("f",LAM ("x",APP (VAR "f",APP (APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+ = LAM(f,t)
+
+ *searching one layer in
+ LAM ("f", => LAM ("x",APP (VAR "f",APP (APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+
+ *searching one layer in
+ LAM ("f", LAM ("x", => APP (VAR "f",APP (APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+ 					 == APP (VAR f, t)
+ *searching one layer in
+ LAM ("f", LAM ("x",  APP (VAR "f",  =>  APP (APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+
+*replacing APP with VAR "x"
+LAM ("f", LAM ("x",  APP (VAR "f",VAR "x")))
+
+
+ACTUAL REDUCTIONS PRODUCED:
+
+APP (LAM ("succ",APP (VAR "succ",LAM ("f",LAM ("x",VAR "x")))),LAM("n",LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))))
+
+APP(LAM("n",LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x")))
+
+LAM("f",LAM("x",APP (VAR "f",APP (APP (LAM ("f",LAM ("x",VAR "x")),VAR "f"),VAR "x"))))
+
+LAM ("f", LAM ("x",  APP (VAR "f",VAR "x")))
+
+two should be:
+
+LAM ("f", LAM ("x",  APP (VAR "f",APP (VAR "f",VAR "x"))))
+
+code produces one
+
+ *)

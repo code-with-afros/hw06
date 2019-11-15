@@ -1,6 +1,6 @@
 zero  := (fn f => fn x => x);
 succ  := fn n => (fn f => fn x => f (n f x));
-main := succ zero;
+main := succ (succ (succ zero));
 
 (*
 for main := succ zero:
@@ -29,6 +29,21 @@ for main := succ zero:
  					 == APP (VAR f, t)
  *searching one layer in
  LAM ("f", LAM ("x",  APP (VAR "f",  =>  APP (APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+=APP(APP(x,t),s)
+
+*searching one layer in
+ LAM ("f", LAM ("x",  APP (VAR "f",  APP ( => APP (  LAM ("f",LAM ("x",VAR "x"))  ,VAR "f"),VAR "x"))))
+= APP(LAM("f",t)s)
+
+*subst s with any instances of VAR "f" in t (there are none)
+ => LAM ("f", LAM ("x",  APP (VAR "f",  APP (LAM ("x",VAR "x"))),VAR "x"))
+
+*going in 3 layers
+ LAM ("f", LAM ("x",  APP (VAR "f", => APP (LAM ("x",VAR "x"))),VAR "x"))
+=APP(LAM(x,t)s) where s is VAR "x"
+
+ *substituting any occurence of VAR "x" with s
+ LAM ("f", LAM ("x",  APP (VAR "f", VAR "x")))
 
 *replacing APP with VAR "x"
 LAM ("f", LAM ("x",  APP (VAR "f",VAR "x")))
@@ -49,5 +64,34 @@ two should be:
 LAM ("f", LAM ("x",  APP (VAR "f",APP (VAR "f",VAR "x"))))
 
 code produces one
+
+
+
+
+for main:= succ (succ zero)
+
+=> APP(LAM("zero",APP(LAM ("succ",APP (VAR "succ",APP (VAR "succ",VAR "zero"))),LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))))),LAM ("f",LAM ("x",VAR "x")))
+= APP(LAM(zero, t)s)
+
+*substituting VAR "zero" with s
+=> APP(LAM("succ",APP (VAR "succ",APP (VAR "succ",LAM ("f",LAM ("x",VAR "x"))))),LAM("n",LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))))
+= APP(LAM(succ, t)s)
+
+*substituting VAR "succ" with s (code gets longer because there are 2 instances of VAR "succ")
+=> APP(LAM("n",LAM ("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),APP(LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x"))))
+= APP(LAM("n",t),APP(succ,zero))
+
+*substituting VAR "n" with APP(succ,zero)
+=> LAM ("f",LAM ("x",APP (VAR "f",APP (APP ( APP(LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x"))) ,VAR "f"),VAR "x"))))
+
+*searching one layer in
+LAM ("f", => LAM ("x",APP (VAR "f",APP (APP ( APP(LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x"))) ,VAR "f"),VAR "x"))))
+
+*searching one layer in
+LAM ("f", LAM ("x", => APP (VAR "f",APP (APP ( APP(LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x"))) ,VAR "f"),VAR "x"))))
+
+*searching one layer in
+LAM ("f", LAM ("x",APP (VAR "f", => APP (APP ( APP(LAM("n",LAM("f",LAM ("x",APP (VAR "f",APP (APP (VAR "n",VAR "f"),VAR "x"))))),LAM ("f",LAM ("x",VAR "x"))) ,VAR "f"),VAR "x"))))
+= APP( APP,VAR x)
 
  *)

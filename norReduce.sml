@@ -161,7 +161,7 @@ fun subst (x,v) t = case t of
                   else (VAR y)
 | (LAM (y,r)) =>
            if x=y then t
-                  else ( subst (x,v) r)
+                  else LAM (y, subst (x,v) r)
 
 
 *)
@@ -173,7 +173,7 @@ fun reduceStep t = case t of
                             else LET (x,reduceStep s,t)
   | (APP (LAM(x,t),s))   => (subst(x,s) t)
   | (APP (VAR x,t))       => (APP(VAR x, reduceStep t))
-  | (APP (APP(x1,t1), VAR x2)) => VAR x2
+  | (APP (APP(x1,t1), VAR x2)) => (APP (reduceStep (APP(x1,t1)), VAR x2) )
   | (APP (REC(f,x,t),s)) => if isValue s 
                             then subst (f,REC(f,x,t)) (subst (x,s) t)
                             else (APP (REC(f,x,t),reduceStep s))                    

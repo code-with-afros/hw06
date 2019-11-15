@@ -4,4 +4,4 @@ one   := (succ zero);
 two   := succ (succ zero);
 plus  := fn n => fn m => (n succ m);
 
-main := plus one two
+main := plus one two;

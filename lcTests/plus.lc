@@ -1,7 +1,0 @@
-succ  := fn n => (fn f => fn x => f (n f x));
-zero  := (fn f => fn x => x);
-one   := (succ zero);
-two   := succ (succ zero);
-plus  := fn n => fn m => (n succ m);
-
-main := plus one two;
